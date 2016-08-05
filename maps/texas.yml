@@ -1,0 +1,18 @@
+---
+territories:
+  - name: SA
+    fullName: San Antonio
+    canAttack: [Aus, Laredo, Hou]
+  - name: Laredo
+    canAttack: [SA]
+  - name: Aus
+    fullName: Austin
+    canAttack: [SA]
+  - name: Hou
+    fullName: Houston
+    canAttack: [SA]
+regions:
+  - name: HillCountry
+    fullName: Hill Country
+    territories: SA
+
