@@ -44,6 +44,11 @@ Board::Board(const string &filename)
             if (ad > 0)
                 t.autoDeploy = ad;
         }
+        if (iTerts[i]["initNeutral"]) {
+            int in = iTerts[i]["initNeutral"].as<int>();
+            if (in > 0)
+                t.autoDeploy = in;
+        }
         if (iTerts[i]["revertNeutral"]) {
             int rn = iTerts[i]["revertNeutral"].as<int>();
             if (rn > 0)
@@ -58,6 +63,8 @@ Board::Board(const string &filename)
                 throw MapConfigParseException(n + " is referenced in canAttack of " + t.name + " but is not the ID of a territory.");
             t.canAttack.push_back(territoriesById.at(n));
         }
+
+        territories[i] = t;
     }
 
     // build bonus region info
@@ -81,6 +88,8 @@ Board::Board(const string &filename)
                 throw MapConfigParseException(n + " is referenced in 'territories' of " + b.name + " but is not the ID of a territory.");
             b.territories.push_back(territoriesById.at(n));
         }
+
+        bonusRegions[i] = b;
     }
 
     // Check for options
@@ -97,4 +106,15 @@ Board::Board(const string &filename)
             minArmiesToDeploy = atd;
     }
 
+}
+
+int Board::numTerritoriesToHandOut()
+{
+    // total territories minus init neutral
+    int c=0;
+    for (TerritoryInfo ti : territories) {
+        if (!ti.initNeutral)
+            c++;
+    }
+    return c;
 }

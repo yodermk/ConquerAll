@@ -4,6 +4,9 @@
 #include <unordered_map>
 #include <stdexcept>
 
+// A Board object holds the info from the corresponding map file.
+// It contains static information about the map in use.
+
 using namespace std;
 
 class Board
@@ -13,6 +16,7 @@ class Board
         string fullName; // display name
         vector<int> canAttack; // territories we can attack from here
         int autoDeploy=0; // number troops auto-deployed if a player holds at beginning of turn
+        int initNeutral=0; // will this start neutral, and with how many armies?
         int revertNeutral=0; // number neutral armies if player holds at beginning of turn 0=no
     };
     struct BonusRegionInfo {
@@ -39,7 +43,7 @@ public:
     inline const vector<TerritoryInfo>& getTerritories() { return territories; }
     inline const vector<BonusRegionInfo>& getBonusRegions() { return bonusRegions; }
     inline int getTerritoryById(string& id) { return territoriesById.at(id); }
-
+    int numTerritoriesToHandOut();
 };
 
 // Exception for YAML parse issues
