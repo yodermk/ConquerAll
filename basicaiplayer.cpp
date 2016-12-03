@@ -1,11 +1,13 @@
 #include "basicaiplayer.h"
 
-BasicAIPlayer::BasicAIPlayer()
+BasicAIPlayer::BasicAIPlayer(std::string iName) : Player(iName)
 {
-
+    // seed the psuedorandom number generator from a hardware random seed
+    std::random_device rdev;
+    rnd.seed(rdev());
 }
 
-void BasicAIPlayer::deploy(int n)
+DeployList BasicAIPlayer::deploy(int n, bool initial)
 {
 
 }

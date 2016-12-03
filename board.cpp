@@ -1,7 +1,7 @@
 #include "board.h"
 #include <yaml-cpp/yaml.h>
 
-Board::Board(const string &filename)
+Board::Board(const std::string &filename)
 {
     YAML::Node mapDef = YAML::LoadFile(filename);
     YAML::Node iTerts = mapDef["territories"];
@@ -22,20 +22,20 @@ Board::Board(const string &filename)
 
     // First pass through to build "by ID" maps
     for (i=0; i<iTerts.size(); i++) {
-        territoriesById[iTerts[i]["name"].as<string>()] = i;
+        territoriesById[iTerts[i]["name"].as<std::string>()] = i;
     }
     for (i=0; i<iRegs.size(); i++) {
-        bonusRegionsById[iRegs[i]["name"].as<string>()] = i;
+        bonusRegionsById[iRegs[i]["name"].as<std::string>()] = i;
     }
 
     // build territory info
     for (i=0; i<iTerts.size(); i++) {
         TerritoryInfo t;
-        t.name = iTerts[i]["name"].as<string>();
+        t.name = iTerts[i]["name"].as<std::string>();
         if (t.name.length()==0)
             throw MapConfigParseException("A territory needs a value for 'name'.");
         if (iTerts[i]["fullName"]) {
-            t.fullName = iTerts[i]["fullName"].as<string>();
+            t.fullName = iTerts[i]["fullName"].as<std::string>();
             if (t.fullName.length()==0)
                 t.fullName = t.name;
         }
@@ -58,7 +58,7 @@ Board::Board(const string &filename)
         if (!iCanAtck.IsSequence())
             throw MapConfigParseException("Territory " + t.name + " needs a canAttack array.");
         for (size_t j=0; j<iCanAtck.size(); j++) {
-            string n = iCanAtck[j].as<string>();
+            std::string n = iCanAtck[j].as<std::string>();
             if (territoriesById.find(n) == territoriesById.end())
                 throw MapConfigParseException(n + " is referenced in canAttack of " + t.name + " but is not the ID of a territory.");
             t.canAttack.push_back(territoriesById.at(n));
@@ -70,10 +70,10 @@ Board::Board(const string &filename)
     // build bonus region info
     for (i=0; i<iRegs.size(); i++) {
         BonusRegionInfo b;
-        b.name = iRegs[i]["name"].as<string>();
+        b.name = iRegs[i]["name"].as<std::string>();
         if (b.name.length()==0)
             throw MapConfigParseException("A bonus region needs a value for 'name'.");
-        b.fullName = iRegs[i]["fullName"].as<string>();
+        b.fullName = iRegs[i]["fullName"].as<std::string>();
         if (b.fullName.length()==0)
             b.fullName = b.name;
         if (iRegs[i]["bonusForAll"]) {
@@ -83,7 +83,7 @@ Board::Board(const string &filename)
         }
         YAML::Node iTerts = iRegs[i]["territories"];
         for (size_t j=0; j<iTerts.size(); j++) {
-            string n = iTerts[j].as<string>();
+            std::string n = iTerts[j].as<std::string>();
             if (territoriesById.find(n) == territoriesById.end())
                 throw MapConfigParseException(n + " is referenced in 'territories' of " + b.name + " but is not the ID of a territory.");
             b.territories.push_back(territoriesById.at(n));
@@ -108,13 +108,3 @@ Board::Board(const string &filename)
 
 }
 
-int Board::numTerritoriesToHandOut()
-{
-    // total territories minus init neutral
-    int c=0;
-    for (TerritoryInfo ti : territories) {
-        if (!ti.initNeutral)
-            c++;
-    }
-    return c;
-}

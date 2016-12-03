@@ -4,8 +4,6 @@
 // Define an interface for AI players to manage possible
 // goals of their strategy.
 
-using namespace std;
-
 class AbstractGoal
 {
 public:
@@ -17,7 +15,8 @@ public:
 
     AbstractGoal();
     virtual float feasibility()=0; // calculate feasibility of this goal
+    // 0..1 probability for this turn,
 
-    vector<DeployTo> deploys;
+    std::vector<DeployTo> deploys;
 };
 

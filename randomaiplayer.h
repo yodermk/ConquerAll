@@ -1,17 +1,19 @@
 #pragma once
-#include <random>
-#include "player.h"
 
-class BasicAIPlayer : public Player
+#include "basicaiplayer.h"
+
+// a player whose every move is completely random!
+
+class RandomAIPlayer : public BasicAIPlayer
 {
 public:
-    BasicAIPlayer(std::string iName);
+    RandomAIPlayer(std::string iName);
+    //virtual void init(std::shared_ptr<Game> ig) override;
 
     virtual DeployList deploy(int n, bool initial=false) override; // deploy n number of troops
     virtual void attackPhase() override; // make attack moves, primary game stage
     virtual void reinforce() override;   // move troops around at the end of turn
 
 protected:
-    std::mt19937 rnd;
+    std::uniform_int_distribution<int> rndTerritoryDist;
 };
-

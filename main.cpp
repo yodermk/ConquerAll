@@ -2,17 +2,26 @@
 #include <memory>
 #include "board.h"
 #include "game.h"
-
-using namespace std;
+#include "basicaiplayer.h"
+#include "basiclogger.h"
 
 void test() {
+    std::shared_ptr<Game> g = nullptr;
     try {
         Board b("maps/texas.yml");
-        auto g = make_shared<Game>(b);
+        g = std::make_shared<Game>(b);
     } catch (const MapConfigParseException& e) {
-        cout << "YAML Exception: " << e.what() << endl;
+        std::cout << "YAML Exception: " << e.what() << std::endl;
         return;
     }
+
+    g->addPlayer(std::make_unique<BasicAIPlayer>("Bob"));
+    g->addPlayer(std::make_unique<BasicAIPlayer>("Bert"));
+    g->addPlayer(std::make_unique<BasicAIPlayer>("Harry"));
+    g->addPlayer(std::make_unique<BasicAIPlayer>("George"));
+
+    g->setLogger(std::make_unique<BasicLogger>(std::cout, g->getBoard()));
+    g->setup();
 
 }
 
