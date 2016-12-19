@@ -108,3 +108,13 @@ Board::Board(const std::string &filename)
 
 }
 
+int Board::getArmyPerTerritories() const
+{
+    return armyPerTerritories;
+}
+
+int Board::getMinArmiesToDeploy() const
+{
+    return minArmiesToDeploy;
+}
+

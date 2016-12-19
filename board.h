@@ -41,6 +41,8 @@ public:
     inline std::vector<TerritoryInfo> getTerritories() const { return territories; }
     inline std::vector<BonusRegionInfo> getBonusRegions() const { return bonusRegions; }
     inline int getTerritoryById(std::string& id) { return territoriesById.at(id); }
+    int getMinArmiesToDeploy() const;
+    int getArmyPerTerritories() const;
 };
 
 // Exception for YAML parse issues

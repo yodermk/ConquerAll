@@ -110,10 +110,55 @@ void Game::mainLoop()
                 round++;
 
             // auto deployments and neutral reversions
+            for (int i=0; i<territories.size(); i++) {
+                if (boardState[i].first == turn) {
+                    register int n = board.getTerritories()[i].autoDeploy;
+                    if (n) {
+                        boardState[i].second += n;
+                        logger->autoDeploy(players[turn], i, n);
+                    }
+                    n = board.getTerritories()[i].revertNeutral;
+                    if (n) {
+                        boardState[i].first = neutral;
+                        boardState[i].second = n;
+                        logger->revertNeutral(players[turn], i, n);
+                    }
+                }
+            }
 
             // calculate how many troops are due
+            // start by counting the territories the player has
+            int c = std::count_if(std::cbegin(boardState), std::cend(boardState),
+                                  [turn=turn](std::pair<int,int> p){return turn==p.first;} );
+            // turn that into armies for territories as specified by map, taking the minimum into account
+            int t = c / board.getArmyPerTerritories();
+            t = std::max(t, board.getMinArmiesToDeploy());
+            // add any bonus region bonuses
+            auto brs = board.getBonusRegions();
+            for (int i=0; i<brs.size(); i++) {
+                auto br = brs[i];
+                int iHave=0;
+                for (const int &t : br.territories)
+                    if (boardState[t].first == turn)
+                        iHave++;
+                bool iHaveAll = iHave == br.territories.size();
+                if (br.bonusForAll) {
+                    // bonus region has one bonus for holding all its territories
+                    if (iHaveAll) {
+                        t += br.bonusForAll;
+                        logger->troopsForBonusRegion(players[turn], br.bonusForAll, i);
+                    }
+                } else {
+                    // bonus region has variable bonus depending on how many regions held
+                    int bonus = br.heldBonus[iHave];
+                    t += bonus;
+                    if (bonus>0)
+                        logger->troopsForBonusRegion(players[turn], bonus, i, iHave);
+                }
+            }
 
             // player deploys
+            players[turn]->deploy(t);
 
             // player attacks
 
