@@ -103,6 +103,9 @@ void Game::setup()
 
 void Game::mainLoop()
 {
+    DeployList dl;
+    ReinforceList rl;
+    int worksum;
     turn=startplayer;
     try {
         do {
@@ -158,11 +161,28 @@ void Game::mainLoop()
             }
 
             // player deploys
-            players[turn]->deploy(t);
+            dl = players[turn]->deploy(t);
+            // DeployList is a list of <territory, #troops> pairs
+            // First we just make sure it's not trying to drop too many. Really the Player
+            // subclasses are expected to get this right, but if they try to drop too many,
+            // we won't deploy anything; if they drop too few, we'll just follow instructions.
+            worksum = 0;
+            for (const auto &d : dl)
+                worksum += d.second;
+            if (worksum <= t) {
+                // now do the drops
+                for (const auto &d : dl) {
+                    boardState[d.first].second += d.second;
+                    logger->deploy(players[turn], d.first, d.second);
+                }
+            }
 
             // player attacks
+            // the meat of the code here will be in a callback
+            players[turn]->attackPhase();
 
             // player reinforces
+            rl = players[turn]->reinforce();
 
             turn++;
             if (turn == nplayers)
@@ -183,6 +203,40 @@ const BoardView Game::getBoardView(Player *pp)
 
     // TODO for fog
     int player = pplayermap[pp];
+}
+
+AttackResult Game::attack(Player *pp, int attackFrom, int attackTo, bool doOrDie)
+{
+    int& armiesOnSource = boardState[attackFrom].second;
+    int& armiesOnDest = boardState[attackTo].second;
+    int player = pplayermap[pp];
+
+    // ensure proper attack:
+    // player owns attacking country, does NOT own attacked country,
+    // and attacking country has at least 2 armies
+    if (boardState[attackFrom].first != player or boardState[attackTo].first == player
+        or armiesOnSource < 2)
+        throw InvalidAttackException();
+    int numLost=0, numOpponentLost=0;
+    std::vector<int> myRolls, opponentRolls;
+    myRolls.reserve(3);
+    opponentRolls.reserve(2);
+
+    do {
+        // roll the dice
+        // attacker rolls the lesser of one less than his source armies
+        // (since one has to stay behind) or 3 (the max you can roll)
+        for (int i=0; i<std::min(armiesOnSource-1,3); i++)
+            myRolls.push_back(dieRoll());
+        std::sort(std::begin(myRolls), std::end(myRolls));
+        // attackee rolls the lesser of his defending armies or 2
+        for (int i=0; i<std::min(armiesOnDest,2); i++)
+            opponentRolls.push_back(dieRoll());
+        std::sort(std::begin(opponentRolls), std::end(opponentRolls));
+
+    } while (!doOrDie);
+
+    return std::make_tuple(numLost, numOpponentLost, false );
 }
 
 

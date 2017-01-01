@@ -7,6 +7,8 @@
 
 // when deploying, this will indicate a list of <territory, troops>
 using DeployList = std::list<std::pair<int, int>>;
+// when reinforcing, this list will be <from_tert, to_tert, troops>
+using ReinforceList = std::list<std::tuple<int, int, int>>;
 
 class Game;
 
@@ -19,7 +21,7 @@ public:
     // Actions a player needs to do
     virtual DeployList deploy(int n, bool initial=false) =0; // deploy n number of troops
     virtual void attackPhase() =0; // make attack moves, primary game stage
-    virtual void reinforce() =0;   // move troops around at the end of turn
+    virtual ReinforceList reinforce() =0;   // move troops around at the end of turn
 
     inline std::string getName() const { return name; }
 

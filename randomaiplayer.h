@@ -12,7 +12,7 @@ public:
 
     virtual DeployList deploy(int n, bool initial=false) override; // deploy n number of troops
     virtual void attackPhase() override; // make attack moves, primary game stage
-    virtual void reinforce() override;   // move troops around at the end of turn
+    virtual ReinforceList reinforce() override;   // move troops around at the end of turn
 
 protected:
     std::uniform_int_distribution<int> rndTerritoryDist;

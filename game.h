@@ -10,12 +10,22 @@
 // For every territory: <Player #, Armies>
 using BoardView = std::vector<std::pair<int, int>>;
 
+// type for returning the result of an attack.
+// <troops you lost, troops opponent lost, territory conquered>
+using AttackResult = std::tuple<int, int, bool>;
+
 // The main Game object; contains info about the state of the game
 // and logic to control it.
 
 class Game : public std::enable_shared_from_this<Game>
 {
 public:
+    enum class Reinforcements { None, Adjacent, Chain, Unlimited };
+    enum class Sets { Fixed, Escalating, Nuclear, Zombie };
+    enum class InitialDeploys { Automatic, Manual };
+    enum class State { Initializing, InitialDeployment, InProgress, Finished };
+    enum class ExtraTier { First, Second, Third };
+
     Game(const Board& iBoard);
     void addPlayer(std::unique_ptr<Player> iP);
     void setFog();
@@ -25,12 +35,7 @@ public:
     void setLogger(std::unique_ptr<BasicLogger> bl);
     inline const Board& getBoard() { return board; }
     const BoardView getBoardView(Player *pp);
-
-    enum class Reinforcements { None, Adjacent, Chain, Unlimited };
-    enum class Sets { Fixed, Escalating, Nuclear, Zombie };
-    enum class InitialDeploys { Automatic, Manual };
-    enum class State { Initializing, InitialDeployment, InProgress, Finished };
-    enum class ExtraTier { First, Second, Third };
+    AttackResult attack(Player *pp, int attackFrom, int attackTo, bool doOrDie=false);
 
     // represents the "card" you get if you conquer at least one territory
     struct Extra {
@@ -69,4 +74,9 @@ protected:
     BoardView boardState; // the "real" board state, before modification by player views for fog
     std::vector<Extra> extraStack; // main stack of "cards"
     std::vector<std::vector<Extra>> playerHoldings; // which "cards" playe
+};
+
+class InvalidAttackException {
+public:
+    InvalidAttackException() {}
 };

@@ -17,7 +17,7 @@ void BasicAIPlayer::attackPhase()
 
 }
 
-void BasicAIPlayer::reinforce()
+ReinforceList BasicAIPlayer::reinforce()
 {
 
 }
