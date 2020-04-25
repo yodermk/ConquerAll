@@ -43,7 +43,7 @@ void Game::setup()
     nplayers = players.size();
 
     // initialize vectors
-    boardState.resize(nplayers);
+    boardState.resize(territories.size());
     for (auto &i : boardState)
         i = std::pair<int, int>{neutral, 1};
     extraStack.resize(territories.size());
@@ -210,6 +210,8 @@ AttackResult Game::attack(Player *pp, int attackFrom, int attackTo, bool doOrDie
     int& armiesOnSource = boardState[attackFrom].second;
     int& armiesOnDest = boardState[attackTo].second;
     int player = pplayermap[pp];
+    
+    int myDice, opponentDice;
 
     // ensure proper attack:
     // player owns attacking country, does NOT own attacked country,
@@ -221,20 +223,34 @@ AttackResult Game::attack(Player *pp, int attackFrom, int attackTo, bool doOrDie
     std::vector<int> myRolls, opponentRolls;
     myRolls.reserve(3);
     opponentRolls.reserve(2);
+    bool stop = not doOrDie;
 
     do {
+        myDice = std::min(armiesOnSource-1,3);
+        opponentDice = std::min(armiesOnDest,2);
         // roll the dice
         // attacker rolls the lesser of one less than his source armies
         // (since one has to stay behind) or 3 (the max you can roll)
-        for (int i=0; i<std::min(armiesOnSource-1,3); i++)
+        for (int i=0; i<myDice; i++)
             myRolls.push_back(dieRoll());
         std::sort(std::begin(myRolls), std::end(myRolls));
         // attackee rolls the lesser of his defending armies or 2
-        for (int i=0; i<std::min(armiesOnDest,2); i++)
+        for (int i=0; i<opponentDice; i++)
             opponentRolls.push_back(dieRoll());
         std::sort(std::begin(opponentRolls), std::end(opponentRolls));
+        
+        for (int i=0; i<std::min(myDice, opponentDice); i++)
+            if (opponentRolls[i] >= myRolls[i])
+                numLost++;
+            else
+                numOpponentLost++;
+        
+        if (doOrDie) {  // do we stop yet?
+            if (armiesOnSource - numLost < 3)
+                stop = true;
+        }
 
-    } while (!doOrDie);
+    } while (!stop);
 
     return std::make_tuple(numLost, numOpponentLost, false );
 }

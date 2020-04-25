@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "randomaiplayer.h"
 #include "game.h"
 
@@ -21,10 +22,16 @@ DeployList RandomAIPlayer::deploy(int n, bool initial)
         int which = rndt(rnd);
         result.push_back(std::make_pair(terts[which], 1));
     }
+    
+    return result;
 }
 
 void RandomAIPlayer::attackPhase()
 {
+    auto possible_attacks = getPossibleAttacks(SortAttacks::BestOdds);
+    std::vector<PossibleAttack> attack;
+    auto do_attack = std::sample(possible_attacks.begin(), possible_attacks.end(), attack.begin(), 1, rnd);
+
 
 }
 

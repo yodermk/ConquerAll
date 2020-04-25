@@ -64,7 +64,7 @@ Board::Board(const std::string &filename)
             t.canAttack.push_back(territoriesById.at(n));
         }
 
-        territories[i] = t;
+        territories.push_back(t);
     }
 
     // build bonus region info
@@ -89,7 +89,7 @@ Board::Board(const std::string &filename)
             b.territories.push_back(territoriesById.at(n));
         }
 
-        bonusRegions[i] = b;
+        bonusRegions.push_back(b);
     }
 
     // Check for options

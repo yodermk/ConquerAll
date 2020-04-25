@@ -46,13 +46,13 @@ public:
     const int neutral = -1;  // signal that no player owns a territory
     const int shrouded = -2; // if a player can not see a location due to fog
 
+    const Board& board;
     std::uniform_int_distribution<int> dieRollDist; // for dice rolls
 
 protected:
     inline int dieRoll() { return dieRollDist(rnd); }
 
     // current game options and settings
-    const Board& board;
     std::vector<std::shared_ptr<Player>> players;
     int nplayers; // number of players
     Reinforcements reinforcements;
@@ -76,7 +76,7 @@ protected:
     std::vector<std::vector<Extra>> playerHoldings; // which "cards" playe
 };
 
-class InvalidAttackException {
+class InvalidAttackException : public std::exception {
 public:
     InvalidAttackException() {}
 };

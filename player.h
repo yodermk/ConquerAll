@@ -9,6 +9,9 @@
 using DeployList = std::list<std::pair<int, int>>;
 // when reinforcing, this list will be <from_tert, to_tert, troops>
 using ReinforceList = std::list<std::tuple<int, int, int>>;
+// list of possible attacks (from territory, # armies, to territory, # armies)
+using PossibleAttack = std::tuple<int, int, int, int>;
+using PossibleAttacks = std::vector<PossibleAttack>;
 
 class Game;
 
@@ -29,7 +32,9 @@ protected:
     std::shared_ptr<Game> g;
     std::string name;
     int me;
+    enum class SortAttacks { AttackingArmies, DefendingArmies, BestOdds };
 
     std::vector<int> myTerritories();
+    PossibleAttacks getPossibleAttacks(SortAttacks sort_by);
 };
 
