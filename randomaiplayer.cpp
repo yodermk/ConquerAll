@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <tuple>
 #include "randomaiplayer.h"
 #include "game.h"
 
@@ -28,11 +29,19 @@ DeployList RandomAIPlayer::deploy(int n, bool initial)
 
 void RandomAIPlayer::attackPhase()
 {
-    auto possible_attacks = getPossibleAttacks(SortAttacks::BestOdds);
-    std::vector<PossibleAttack> attack;
-    auto do_attack = std::sample(possible_attacks.begin(), possible_attacks.end(), attack.begin(), 1, rnd);
+    do {
+        auto possible_attacks = getPossibleAttacks(SortAttacks::BestOdds);
+        if (possible_attacks.empty())
+            return;
 
+        std::vector<PossibleAttack> attack;
+        auto do_attack = std::sample(possible_attacks.begin(), possible_attacks.end(), attack.begin(), 1, rnd);
 
+        AttackResult result = g->attack(std::get<0>(do_attack[0]), std::get<2>(do_attack[0]), true);
+        if (std::get<2>(result)) {  // if attack succeeded, we need to advance some
+
+        }
+    } while (true);
 }
 
 ReinforceList RandomAIPlayer::reinforce()

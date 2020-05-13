@@ -35,7 +35,7 @@ public:
     void setLogger(std::unique_ptr<BasicLogger> bl);
     inline const Board& getBoard() { return board; }
     const BoardView getBoardView(Player *pp);
-    AttackResult attack(Player *pp, int attackFrom, int attackTo, bool doOrDie=false);
+    AttackResult attack(int attackFrom, int attackTo, bool doOrDie = false);
 
     // represents the "card" you get if you conquer at least one territory
     struct Extra {
@@ -63,7 +63,6 @@ protected:
     std::vector<Board::TerritoryInfo> territories;
     std::vector<Board::BonusRegionInfo> bonusRegions;
     std::unique_ptr<BasicLogger> logger;
-    std::map<Player*, int> pplayermap; // used to "authenticate" requests from players, via pointer
 
     // For game logic
     State state;
@@ -78,5 +77,5 @@ protected:
 
 class InvalidAttackException : public std::exception {
 public:
-    InvalidAttackException() {}
+    InvalidAttackException() = default;
 };

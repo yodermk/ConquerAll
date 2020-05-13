@@ -22,7 +22,6 @@ void Game::addPlayer(std::unique_ptr<Player> iP)
     static int playercount = 0;
     iP->init(shared_from_this(), playercount);
     players.push_back(std::move(iP));
-    pplayermap[iP.get()] = playercount; // putting raw pointer to player into map, for "authentication"
     playercount++;
 }
 
@@ -115,7 +114,7 @@ void Game::mainLoop()
             // auto deployments and neutral reversions
             for (int i=0; i<territories.size(); i++) {
                 if (boardState[i].first == turn) {
-                    register int n = board.getTerritories()[i].autoDeploy;
+                    int n = board.getTerritories()[i].autoDeploy;
                     if (n) {
                         boardState[i].second += n;
                         logger->autoDeploy(players[turn], i, n);
@@ -149,7 +148,7 @@ void Game::mainLoop()
                     // bonus region has one bonus for holding all its territories
                     if (iHaveAll) {
                         t += br.bonusForAll;
-                        logger->troopsForBonusRegion(players[turn], br.bonusForAll, i);
+                        logger->troopsForBonusRegion(players[turn], br.bonusForAll, i, 0);
                     }
                 } else {
                     // bonus region has variable bonus depending on how many regions held
@@ -202,21 +201,19 @@ const BoardView Game::getBoardView(Player *pp)
         return boardState;
 
     // TODO for fog
-    int player = pplayermap[pp];
 }
 
-AttackResult Game::attack(Player *pp, int attackFrom, int attackTo, bool doOrDie)
+AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
 {
     int& armiesOnSource = boardState[attackFrom].second;
     int& armiesOnDest = boardState[attackTo].second;
-    int player = pplayermap[pp];
-    
+
     int myDice, opponentDice;
 
     // ensure proper attack:
     // player owns attacking country, does NOT own attacked country,
     // and attacking country has at least 2 armies
-    if (boardState[attackFrom].first != player or boardState[attackTo].first == player
+    if (boardState[attackFrom].first != turn or boardState[attackTo].first == turn
         or armiesOnSource < 2)
         throw InvalidAttackException();
     int numLost=0, numOpponentLost=0;
@@ -240,19 +237,33 @@ AttackResult Game::attack(Player *pp, int attackFrom, int attackTo, bool doOrDie
         std::sort(std::begin(opponentRolls), std::end(opponentRolls));
         
         for (int i=0; i<std::min(myDice, opponentDice); i++)
-            if (opponentRolls[i] >= myRolls[i])
+            if (opponentRolls[i] >= myRolls[i]) {
                 numLost++;
-            else
+                armiesOnSource--;
+            }
+            else {
                 numOpponentLost++;
-        
-        if (doOrDie) {  // do we stop yet?
-            if (armiesOnSource - numLost < 3)
-                stop = true;
-        }
+                armiesOnDest--;
+            }
 
+        if (armiesOnDest != 0) {
+
+            if (doOrDie) {  // do we stop yet?
+                if (armiesOnSource < 3)
+                    stop = true;
+            }
+
+        } else {
+            // Attacker won!
+            logger->attack(players[turn], attackFrom, attackTo, true, numLost, numOpponentLost);
+            // advance one, change owner
+            boardState[attackTo].first = 1;
+            armiesOnDest = 1;
+            armiesOnSource--;
+            return std::make_tuple(numLost, numOpponentLost, true);
+        }
     } while (!stop);
 
-    return std::make_tuple(numLost, numOpponentLost, false );
+    logger->attack(players[turn], attackFrom, attackTo, false, numLost, numOpponentLost);
+    return std::make_tuple(numLost, numOpponentLost, false);
 }
-
-
