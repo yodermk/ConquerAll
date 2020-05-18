@@ -50,3 +50,8 @@ void BasicLogger::attack(const std::shared_ptr<Player> &p, int fromTerritory, in
 
     out << " Lost " << numLost << " armies to opponent's loss of " << numOpponentLost << std::endl;
 }
+
+void BasicLogger::advance(const std::shared_ptr<Player> &p, int fromTerritory, int toTerritory, int armies) {
+    out << p->getName() << " advanced " << armies << " from " << board.getTerritories()[fromTerritory].fullName << " to " <<
+        board.getTerritories()[toTerritory].fullName << std::endl;
+}

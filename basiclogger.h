@@ -15,6 +15,7 @@ public:
     virtual void troopsForTerritories(const std::shared_ptr<Player> &p, int troops, int territories);
     virtual void troopsForBonusRegion(const std::shared_ptr<Player> &p, int troops, int bonusRegion, int part);
     virtual void attack(const std::shared_ptr<Player> &p, int fromTerritory, int toTerritory, bool success, int numLost, int numOpponentLost);
+    virtual void advance(const std::shared_ptr<Player> &p, int fromTerritory, int toTerritory, int armies);
     virtual ~BasicLogger() = default;
 
 protected:

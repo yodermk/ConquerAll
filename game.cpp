@@ -111,6 +111,8 @@ void Game::mainLoop()
             if (turn==startplayer)
                 round++;
 
+            turn_state = TurnState::Deploy;
+
             // auto deployments and neutral reversions
             for (int i=0; i<territories.size(); i++) {
                 if (boardState[i].first == turn) {
@@ -176,9 +178,13 @@ void Game::mainLoop()
                 }
             }
 
+            turn_state = TurnState::Attack;
+
             // player attacks
             // the meat of the code here will be in a callback
             players[turn]->attackPhase();
+
+            turn_state = TurnState::Reinforce;
 
             // player reinforces
             rl = players[turn]->reinforce();
@@ -209,6 +215,8 @@ AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
     int& armiesOnDest = boardState[attackTo].second;
 
     int myDice, opponentDice;
+
+    turn_state = TurnState::Attack;  // in case of another attack without an advance
 
     // ensure proper attack:
     // player owns attacking country, does NOT own attacked country,
@@ -260,10 +268,21 @@ AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
             boardState[attackTo].first = 1;
             armiesOnDest = 1;
             armiesOnSource--;
-            return std::make_tuple(numLost, numOpponentLost, true);
+            turn_state = TurnState::Advance;
+            advance_from_to = std::make_pair(attackFrom, attackTo);
+            return std::make_tuple(numLost, numOpponentLost, true, armiesOnSource);
         }
     } while (!stop);
 
     logger->attack(players[turn], attackFrom, attackTo, false, numLost, numOpponentLost);
-    return std::make_tuple(numLost, numOpponentLost, false);
+    return std::make_tuple(numLost, numOpponentLost, false, armiesOnSource);
+}
+
+void Game::advance(int armies) {
+    if (armies < boardState[advance_from_to.first].second) { // at least one must remain in the source territory
+        boardState[advance_from_to.first].second -= armies;
+        boardState[advance_from_to.second].second += armies;
+        turn_state = TurnState::Attack;
+        logger->advance(players[turn], advance_from_to.first, advance_from_to.second, armies);
+    }
 }

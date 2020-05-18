@@ -1,7 +1,7 @@
 #pragma once
+#include <map>
 #include <memory>
 #include <random>
-#include <map>
 #include "board.h"
 #include "player.h"
 #include "basiclogger.h"
@@ -11,8 +11,8 @@
 using BoardView = std::vector<std::pair<int, int>>;
 
 // type for returning the result of an attack.
-// <troops you lost, troops opponent lost, territory conquered>
-using AttackResult = std::tuple<int, int, bool>;
+// <troops you lost, troops opponent lost, territory conquered, remaining armies on source>
+using AttackResult = std::tuple<int, int, bool, int>;
 
 // The main Game object; contains info about the state of the game
 // and logic to control it.
@@ -24,6 +24,7 @@ public:
     enum class Sets { Fixed, Escalating, Nuclear, Zombie };
     enum class InitialDeploys { Automatic, Manual };
     enum class State { Initializing, InitialDeployment, InProgress, Finished };
+    enum class TurnState { Deploy, Attack, Advance, Reinforce };
     enum class ExtraTier { First, Second, Third };
 
     Game(const Board& iBoard);
@@ -36,6 +37,7 @@ public:
     inline const Board& getBoard() { return board; }
     const BoardView getBoardView(Player *pp);
     AttackResult attack(int attackFrom, int attackTo, bool doOrDie = false);
+    void advance(int armies);
 
     // represents the "card" you get if you conquer at least one territory
     struct Extra {
@@ -66,6 +68,8 @@ protected:
 
     // For game logic
     State state;
+    TurnState turn_state;
+    std::pair<int,int> advance_from_to;  // After a win, note territories where the advance should be from and to, meaningful only in TurnState::Advance
     std::mt19937 rnd; // random number generator
     int startplayer;
     int round=0; // round number of the game (one round=each player taking his/her/its turn)
