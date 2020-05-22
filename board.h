@@ -4,6 +4,10 @@
 #include <unordered_map>
 #include <stdexcept>
 
+// type for returning a view of the board to a player
+// For every territory: <Player #, Armies>
+using BoardView = std::vector<std::pair<int, int>>;
+
 // A Board object holds the info from the corresponding map file.
 // It contains static information about the map in use.
 
@@ -17,6 +21,7 @@ public:
         int autoDeploy=0; // number troops auto-deployed if a player holds at beginning of turn
         int initNeutral=0; // will this start neutral, and with how many armies?
         int revertNeutral=0; // number neutral armies if player holds at beginning of turn 0=no
+        std::string getName() const {if (fullName.empty()) return name; else return fullName;}
     };
     struct BonusRegionInfo {
         std::string name;
@@ -24,6 +29,7 @@ public:
         int bonusForAll=0; // bonus given if all territories held
         std::vector<int> heldBonus; // bonus given if [x] territories held
         std::vector<int> territories; // territories in our bonus region
+        std::string getName() const {if (fullName.empty()) return name; else return fullName;}
     };
 
     Board(const std::string& filename);
@@ -38,8 +44,8 @@ protected:
     int minArmiesToDeploy=3; // Minimum a player will get on any turn
 
 public:
-    inline std::vector<TerritoryInfo> getTerritories() const { return territories; }
-    inline std::vector<BonusRegionInfo> getBonusRegions() const { return bonusRegions; }
+    inline const std::vector<TerritoryInfo> & getTerritories() const { return territories; }
+    inline const std::vector<BonusRegionInfo> & getBonusRegions() const { return bonusRegions; }
     inline int getTerritoryById(std::string& id) { return territoriesById.at(id); }
     int getMinArmiesToDeploy() const;
     int getArmyPerTerritories() const;

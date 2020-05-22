@@ -82,8 +82,8 @@ Board::Board(const std::string &filename)
                 b.bonusForAll = bfa;
         }
         YAML::Node iTerts = iRegs[i]["territories"];
-        for (size_t j=0; j<iTerts.size(); j++) {
-            std::string n = iTerts[j].as<std::string>();
+        for (auto && iTert : iTerts) {
+            auto n = iTert.as<std::string>();
             if (territoriesById.find(n) == territoriesById.end())
                 throw MapConfigParseException(n + " is referenced in 'territories' of " + b.name + " but is not the ID of a territory.");
             b.territories.push_back(territoriesById.at(n));

@@ -6,10 +6,6 @@
 #include "player.h"
 #include "basiclogger.h"
 
-// type for returning a view of the board to a player
-// For every territory: <Player #, Armies>
-using BoardView = std::vector<std::pair<int, int>>;
-
 // type for returning the result of an attack.
 // <troops you lost, troops opponent lost, territory conquered, remaining armies on source>
 using AttackResult = std::tuple<int, int, bool, int>;
@@ -38,6 +34,7 @@ public:
     const BoardView getBoardView(Player *pp);
     AttackResult attack(int attackFrom, int attackTo, bool doOrDie = false);
     void advance(int armies);
+    bool is_eliminated(unsigned int player) const {return players_eliminated & (1u << player);}
 
     // represents the "card" you get if you conquer at least one territory
     struct Extra {
@@ -62,7 +59,7 @@ protected:
     InitialDeploys initialDeploys;
     bool fog = false;
     bool trench = false;
-    std::vector<Board::TerritoryInfo> territories;
+    const std::vector<Board::TerritoryInfo> & territories;
     std::vector<Board::BonusRegionInfo> bonusRegions;
     std::unique_ptr<BasicLogger> logger;
 
@@ -76,7 +73,10 @@ protected:
     int turn; // player who's turn it is, index into 'players'
     BoardView boardState; // the "real" board state, before modification by player views for fog
     std::vector<Extra> extraStack; // main stack of "cards"
-    std::vector<std::vector<Extra>> playerHoldings; // which "cards" playe
+    std::vector<std::vector<Extra>> playerHoldings; // which "cards" player holds
+    unsigned long int players_eliminated;  // bit field, each bit is true when corresponding player is out. Yes this limits us to 64 players.
+
+    void player_out(unsigned int player) {players_eliminated |= (1u << player);}
 };
 
 class InvalidAttackException : public std::exception {

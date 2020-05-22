@@ -18,7 +18,17 @@ More to come.
 It compiles.  Not expected to be playable or even really runnable.
 Needs lots of testing.
 
-Most of the main logic is there for game flow but need to finish it out.
+As of 5/21/20, the game logic seems to work and the RandomAiPlayer also works,
+and games have been successfully simulated!
 
-Then the real fun - the AI players.
+Then the real fun - the real AI players.  It is intended to implement AI
+that can intelligently decide on different goals -- do I want to take a bonus
+region, take another player out, or ... ?  Then it will have to figure out
+a path to do that.
+
+The idea is to be able to simulate millions of games with different AI parameters
+and see which ones work best.
+
+Human playability against the AI will hopefully come at some point.
+
 

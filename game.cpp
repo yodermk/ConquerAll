@@ -2,6 +2,7 @@
 #include "game.h"
 
 class GameOverException {
+public:
     GameOverException() {}
 };
 
@@ -116,7 +117,7 @@ void Game::mainLoop()
             // auto deployments and neutral reversions
             for (int i=0; i<territories.size(); i++) {
                 if (boardState[i].first == turn) {
-                    int n = board.getTerritories()[i].autoDeploy;
+                    int n = territories[i].autoDeploy;
                     if (n) {
                         boardState[i].second += n;
                         logger->autoDeploy(players[turn], i, n);
@@ -129,6 +130,8 @@ void Game::mainLoop()
                     }
                 }
             }
+
+            logger->boardState(boardState, board);
 
             // calculate how many troops are due
             // start by counting the territories the player has
@@ -188,10 +191,17 @@ void Game::mainLoop()
 
             // player reinforces
             rl = players[turn]->reinforce();
+            // TODO implement reinforce
 
-            turn++;
-            if (turn == nplayers)
-                turn=0;
+            unsigned int current_player = turn;
+            do {
+                turn++;
+                if (turn == nplayers)
+                    turn = 0;
+            } while (is_eliminated(turn));
+            if (turn == current_player) {
+                throw GameOverException();
+            }
         } while (true); // exit via an exception when there is a winner
     } catch (const GameOverException& e) {}
 }
@@ -238,7 +248,7 @@ AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
         // (since one has to stay behind) or 3 (the max you can roll)
         for (int i=0; i<myDice; i++)
             myRolls.push_back(dieRoll());
-        std::sort(std::begin(myRolls), std::end(myRolls));
+        std::sort(std::begin(myRolls), std::end(myRolls), std::greater<int>());
         // attackee rolls the lesser of his defending armies or 2
         for (int i=0; i<opponentDice; i++)
             opponentRolls.push_back(dieRoll());
@@ -265,11 +275,19 @@ AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
             // Attacker won!
             logger->attack(players[turn], attackFrom, attackTo, true, numLost, numOpponentLost);
             // advance one, change owner
-            boardState[attackTo].first = 1;
+            int old_owner = boardState[attackTo].first;
+            boardState[attackTo].first = turn;
             armiesOnDest = 1;
             armiesOnSource--;
             turn_state = TurnState::Advance;
             advance_from_to = std::make_pair(attackFrom, attackTo);
+
+            int player_has = std::count_if(boardState.begin(), boardState.end(), [old_owner](std::pair<int,int> t) {return t.first == old_owner;});
+            if (player_has == 0) {
+                player_out(old_owner);
+                logger->eliminated(players[old_owner]);
+            }
+
             return std::make_tuple(numLost, numOpponentLost, true, armiesOnSource);
         }
     } while (!stop);

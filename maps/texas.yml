@@ -14,5 +14,6 @@ territories:
 regions:
   - name: HillCountry
     fullName: Hill Country
-    territories: SA
+    territories: [SA]
+    bonusForAll: 2
 
