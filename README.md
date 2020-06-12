@@ -31,4 +31,13 @@ and see which ones work best.
 
 Human playability against the AI will hopefully come at some point.
 
+Also, cards (called "Extra" in the code) and reinforcements have not yet
+been fully implemented.
 
+
+## Compiling
+You will require CMake as well as yaml-cpp and its headers/dev files, which is in most
+Linux distro repositories.
+
+`cmake . && make`
+should do it, then just `./ConquerAll`

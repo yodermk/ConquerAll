@@ -9,7 +9,9 @@ class BasicLogger
 {
 public:
     BasicLogger(std::ostream& iOut, const Board& iBoard);
-    virtual void boardState(const BoardView &state, const Board &b);
+    virtual void advanceRound(int round) { out << "Advancing to round: " << round << std::endl << std::flush; }
+    virtual void boardState(const BoardView &state, const std::vector<std::shared_ptr<Player>> &players);
+    virtual void deal(const std::shared_ptr<Player> &p, int territory);
     virtual void deploy(const std::shared_ptr<Player> &p, int territory, int num);
     virtual void autoDeploy(const std::shared_ptr<Player> &p, int territory, int num);
     virtual void revertNeutral(const std::shared_ptr<Player> &p, int territory, int num);

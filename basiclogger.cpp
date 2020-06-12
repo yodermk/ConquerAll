@@ -61,10 +61,14 @@ void BasicLogger::eliminated(const std::shared_ptr<Player> &p) {
     out << p->getName() << " has been eliminated!" << std::endl << std::flush;
 }
 
-void BasicLogger::boardState(const BoardView &state, const Board &b) {
-    auto &ts = b.getTerritories();
+void BasicLogger::boardState(const BoardView &state, const std::vector<std::shared_ptr<Player>> &players) {
+    auto &ts = board.getTerritories();
     for (int t=0; t<ts.size(); t++) {
-        out << std::setw(20) << ts[t].getName() << " : " << state[t].first << ":" << state[t].second << std::endl;
+        out << std::setw(20) << ts[t].getName() << " : " << (state[t].first == -1 ? "<Neutral>" : players[state[t].first]->getName()) << ":" << state[t].second << std::endl;
     }
     out << std::flush;
+}
+
+void BasicLogger::deal(const std::shared_ptr<Player> &p, int territory) {
+    out << board.getTerritories()[territory].getName() << " has been dealt to " << p->getName() << std::endl << std::flush;
 }

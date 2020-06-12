@@ -8,7 +8,7 @@
 void test() {
     std::shared_ptr<Game> g = nullptr;
     try {
-        Board b("maps/texas.yml");
+        Board b("maps/usa.yml");
         g = std::make_shared<Game>(b);
 
         g->addPlayer(std::make_unique<RandomAIPlayer>("Bob"));

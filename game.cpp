@@ -11,7 +11,7 @@ Game::Game(const Board &iBoard) : board(iBoard), state(State::Initializing),
          sets(Sets::Escalating), initialDeploys(InitialDeploys::Automatic),
          dieRollDist(1, 6),
          territories(board.getTerritories()), bonusRegions(board.getBonusRegions()),
-         round(0)
+         round(1)
 {
     // seed the psuedorandom number generator from a hardware random seed
     std::random_device rdev;
@@ -109,9 +109,6 @@ void Game::mainLoop()
     turn=startplayer;
     try {
         do {
-            if (turn==startplayer)
-                round++;
-
             turn_state = TurnState::Deploy;
 
             // auto deployments and neutral reversions
@@ -131,7 +128,7 @@ void Game::mainLoop()
                 }
             }
 
-            logger->boardState(boardState, board);
+            logger->boardState(boardState, players);
 
             // calculate how many troops are due
             // start by counting the territories the player has
@@ -196,6 +193,11 @@ void Game::mainLoop()
             unsigned int current_player = turn;
             do {
                 turn++;
+                if (turn==startplayer) {
+                    round++;
+                    logger->advanceRound(round);
+                }
+
                 if (turn == nplayers)
                     turn = 0;
             } while (is_eliminated(turn));
@@ -282,10 +284,13 @@ AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
             turn_state = TurnState::Advance;
             advance_from_to = std::make_pair(attackFrom, attackTo);
 
-            int player_has = std::count_if(boardState.begin(), boardState.end(), [old_owner](std::pair<int,int> t) {return t.first == old_owner;});
-            if (player_has == 0) {
-                player_out(old_owner);
-                logger->eliminated(players[old_owner]);
+            if (old_owner != -1) {
+                int player_has = std::count_if(boardState.begin(), boardState.end(),
+                                               [old_owner](std::pair<int, int> t) { return t.first == old_owner; });
+                if (player_has == 0) {
+                    player_out(old_owner);
+                    logger->eliminated(players[old_owner]);
+                }
             }
 
             return std::make_tuple(numLost, numOpponentLost, true, armiesOnSource);
