@@ -72,3 +72,8 @@ void BasicLogger::boardState(const BoardView &state, const std::vector<std::shar
 void BasicLogger::deal(const std::shared_ptr<Player> &p, int territory) {
     out << board.getTerritories()[territory].getName() << " has been dealt to " << p->getName() << std::endl << std::flush;
 }
+
+void BasicLogger::reinforce(const std::shared_ptr<Player> &p, int fromTerritory, int toTerritory, int armies) {
+    out << p->getName() << " reinforced " << armies << " from " << board.getTerritories()[fromTerritory].getName() << " to " <<
+        board.getTerritories()[toTerritory].getName() << std::endl << std::flush;
+}

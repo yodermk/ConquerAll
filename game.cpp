@@ -38,6 +38,24 @@ void Game::setTrench()
         trench = true;
 }
 
+void Game::setManualDeploy()
+{
+    if (state == State::Initializing)
+        initialDeploys = InitialDeploys::Manual;
+}
+
+void Game::setExtra(Sets iSets)
+{
+    if (state == State::Initializing)
+        sets = iSets;
+}
+
+void Game::setReinforce(Reinforcements r)
+{
+    if (state == State::Initializing)
+        reinforcements = r;
+}
+
 void Game::setup()
 {
     nplayers = players.size();
@@ -94,6 +112,7 @@ void Game::setup()
             // deploys by human players.
             p->deploy(numToDeploy, true);
         }
+        state = State::InProgress;
     }
 
     // who starts?
@@ -105,6 +124,8 @@ void Game::mainLoop()
 {
     DeployList dl;
     ReinforceList rl;
+    int r_from, r_to, r_troops;  // for reinforcement
+    bool right_players_and_armies, valid_reinforce_path;
     int worksum;
     turn=startplayer;
     try {
@@ -182,13 +203,45 @@ void Game::mainLoop()
 
             // player attacks
             // the meat of the code here will be in a callback
+            acquire_extra_flag = false;
             players[turn]->attackPhase();
 
             turn_state = TurnState::Reinforce;
 
             // player reinforces
             rl = players[turn]->reinforce();
-            // TODO implement reinforce
+
+            if (reinforcements != Reinforcements::None) {
+                for (const auto &reinforce : rl) {
+                    std::tie(r_from, r_to, r_troops) = reinforce;
+                    right_players_and_armies = boardState[r_from].first == turn and
+                            boardState[r_to].first == turn and boardState[r_from].second > r_troops;
+
+                    if (reinforcements == Reinforcements::Adjacent) {
+                        auto & can_reinforce = territories[r_from].canAttack;
+                        valid_reinforce_path = std::find(can_reinforce.begin(), can_reinforce.end(), r_to) != can_reinforce.end();
+                    } else {
+                        // Reinforcements should be Chain or Unlimited, so any path through our territories works
+                        auto valid_destinations = get_reinforce_area(turn, r_from);
+                        valid_reinforce_path = std::find(valid_destinations.begin(), valid_destinations.end(), r_to) != valid_destinations.end();
+                    }
+
+                    if (valid_reinforce_path) {
+                        boardState[r_from].second -= r_troops;
+                        boardState[r_to].second += r_troops;
+                        logger->reinforce(players[turn], r_from, r_to, r_troops);
+                    }
+
+                    if (reinforcements != Reinforcements::Unlimited)
+                        break;  // if any more in the list, ignore them unless Unlimited
+                }
+            }
+
+            // did they win an extra?
+            if (acquire_extra_flag) {
+                Extra e = extraStack.pop_front();
+                playerHoldings[turn].push_back(e);
+            }
 
             unsigned int current_player = turn;
             do {
@@ -276,6 +329,7 @@ AttackResult Game::attack(int attackFrom, int attackTo, bool doOrDie)
         } else {
             // Attacker won!
             logger->attack(players[turn], attackFrom, attackTo, true, numLost, numOpponentLost);
+            acquire_extra_flag = true;
             // advance one, change owner
             int old_owner = boardState[attackTo].first;
             boardState[attackTo].first = turn;
@@ -309,3 +363,41 @@ void Game::advance(int armies) {
         logger->advance(players[turn], advance_from_to.first, advance_from_to.second, armies);
     }
 }
+
+std::vector<int> Game::get_reinforce_area(int player, int from) {
+    std::vector<int> list{from};  // building list of places we can go
+    std::vector<bool> checked{false};  // corresponding to above; whether we have checked those for connections yet
+    int tert = from;
+    int index = 0;  // index into these vectors we're currently looking at
+
+    do {
+        // add any territories we haven't seen yet to list, and false to checked
+        for (int t : territories[tert].canAttack) {
+            if (boardState[t].first == player and std::find(list.begin(), list.end(), t) == list.end()) {
+                list.push_back(t);
+                checked.push_back(false);
+            }
+        }
+
+        checked[index] = true;
+
+        // next territory to check, if any
+        auto it = std::find(checked.begin(), checked.end(), false);
+        if (it == checked.end())
+            return list;
+        index = std::distance(checked.begin(), it);
+        tert = list[index];
+    } while (true);
+}
+
+int Game::extra_escalating_next()
+{
+    static int current = 2;
+    if (current < 15)
+        current += 2;
+    else
+        current += 5;
+
+    return current;
+}
+

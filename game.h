@@ -27,6 +27,9 @@ public:
     void addPlayer(std::unique_ptr<Player> iP);
     void setFog();
     void setTrench();
+    void setManualDeploy();
+    void setExtra(Sets iSets);
+    void setReinforce(Reinforcements r);
     void setup();
     void mainLoop();
     void setLogger(std::unique_ptr<BasicLogger> bl);
@@ -50,6 +53,7 @@ public:
 
 protected:
     inline int dieRoll() { return dieRollDist(rnd); }
+    virtual int extra_escalating_next();
 
     // current game options and settings
     std::vector<std::shared_ptr<Player>> players;
@@ -72,9 +76,11 @@ protected:
     int round=0; // round number of the game (one round=each player taking his/her/its turn)
     int turn; // player who's turn it is, index into 'players'
     BoardView boardState; // the "real" board state, before modification by player views for fog
-    std::vector<Extra> extraStack; // main stack of "cards"
+    std::list<Extra> extraStack; // main stack of "cards"
     std::vector<std::vector<Extra>> playerHoldings; // which "cards" player holds
+    bool acquire_extra_flag;  // set when one territory on a turn has been conquered, to signal drawing a card
     unsigned long int players_eliminated;  // bit field, each bit is true when corresponding player is out. Yes this limits us to 64 players.
+    std::vector<int> get_reinforce_area(int player, int from);
 
     void player_out(unsigned int player) {players_eliminated |= (1u << player);}
 };

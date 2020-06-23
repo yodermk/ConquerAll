@@ -1,7 +1,7 @@
-SET(CMAKE_CXX_FLAGS "-std=c++17")
-
 project(ConquerAll)
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_CXX_STANDARD 20)
+# SET(CMAKE_CXX_FLAGS "-fcoroutines")
 aux_source_directory(. SRC_LIST)
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME} yaml-cpp)
