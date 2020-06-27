@@ -11,7 +11,7 @@ Game::Game(const Board &iBoard) : board(iBoard), state(State::Initializing),
          sets(Sets::Escalating), initialDeploys(InitialDeploys::Automatic),
          dieRollDist(1, 6),
          territories(board.getTerritories()), bonusRegions(board.getBonusRegions()),
-         round(1)
+         round(1), players_eliminated(0)
 {
     // seed the psuedorandom number generator from a hardware random seed
     std::random_device rdev;
@@ -239,8 +239,11 @@ void Game::mainLoop()
 
             // did they win an extra?
             if (acquire_extra_flag) {
-                Extra e = extraStack.pop_front();
-                playerHoldings[turn].push_back(e);
+                if (!extraStack.empty()) {
+                    Extra e = extraStack.front();
+                    extraStack.pop_front();
+                    playerHoldings[turn].push_back(e);
+                }
             }
 
             unsigned int current_player = turn;

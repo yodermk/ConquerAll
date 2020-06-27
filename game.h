@@ -2,6 +2,7 @@
 #include <map>
 #include <memory>
 #include <random>
+#include <deque>
 #include "board.h"
 #include "player.h"
 #include "basiclogger.h"
@@ -76,7 +77,7 @@ protected:
     int round=0; // round number of the game (one round=each player taking his/her/its turn)
     int turn; // player who's turn it is, index into 'players'
     BoardView boardState; // the "real" board state, before modification by player views for fog
-    std::list<Extra> extraStack; // main stack of "cards"
+    std::deque<Extra> extraStack; // main stack of "cards"
     std::vector<std::vector<Extra>> playerHoldings; // which "cards" player holds
     bool acquire_extra_flag;  // set when one territory on a turn has been conquered, to signal drawing a card
     unsigned long int players_eliminated;  // bit field, each bit is true when corresponding player is out. Yes this limits us to 64 players.
